@@ -1,5 +1,5 @@
 use std::net::SocketAddr;
-use futures::StreamExt;
+use futures::{SinkExt, StreamExt};
 use log::{error, info};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, WebSocketStream};
@@ -22,12 +22,16 @@ async fn handle_connection(stream : TcpStream) -> () {
         match message {
             Ok(Message::Text(text)) => {
                 let reversed = text.chars().rev().collect::<String>();
+                if let Err(err) = sender.send(Message::Text(reversed)).await {
+                    error!("Error sending message : {}", err);
+                }
             }
             Ok(Message::Close(_)) => break,
             Err(err) => {
                 error!("Error processing message : {}", err);
                 break;
             }
+            _ => {}
         }
     }
 }
@@ -40,6 +44,6 @@ async fn main() -> () {
             .expect("Couldn't bind.");
     info!("Listening on : http://localhost:8000");
     while let Ok((stream, _)) = listener.accept().await {
-        tokio::spawn(handle_connection(stream))
+        tokio::spawn(handle_connection(stream));
     }
 }

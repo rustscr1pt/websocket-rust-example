@@ -17,7 +17,10 @@ async fn handle_connection(stream: TcpStream) -> () {
     };
 
     // Split the WebSocket stream into `sender` and `receiver` to handle sending and receiving separately
-    let (mut sender, mut receiver) = ws_stream.split();
+    let (
+        mut sender,
+        mut receiver
+    ) = ws_stream.split();
 
     // Enter a loop to read messages from the WebSocket `receiver`
     while let Some(message) = receiver.next().await {
